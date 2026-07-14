@@ -38,6 +38,8 @@ npm test         # scoring + acceptance-scenario suite (Vitest)
 | Risk engine | `src/lib/risk/` | Finding→risk-event grouping, 0–1000 priority with boosts/reductions, recommendations, verification gate |
 | AI reasoning | `src/lib/ai/` | Grounded change explanations & QBR narratives via the Claude API, with redaction, prompt registry, output validation, and a deterministic fallback |
 | Customer portal | `src/lib/ui/portal.ts`, `src/app/(portal)/` | Customer-facing posture view with strict display safety (capability-level, vendor-free) |
+| Connector SDK | `src/lib/connectors/` | Canonical event envelope, connector interface, health/idempotency, NinjaOne example + fixture + contract test |
+| Persistence | `prisma/` | Postgres schema (canonical model, tenant-scoped), RLS policies, seed from the deterministic model |
 | Seed data | `src/lib/data/` | 14 deterministic customers; the 5 acceptance scenarios baked in |
 | UI | `src/app/` | Office TV, Command Center, Customer & Risk-event drill-downs, Executive, Integrations, Metric Registry |
 | API | `src/app/api/` | REST routes matching `api/openapi-outline.yaml` |
@@ -134,6 +136,47 @@ display safety**:
   as a **Visibility** gap (e.g. Cascade's missing sensor data), never conflated.
 - **Every statement maps to evidence**, and the entry point is tenant-isolated (a
   customer only sees their own organization).
+
+## Connector SDK (Phases 2 & 6)
+
+`src/lib/connectors/` is the ingestion framework (ARCHITECTURE.md Connector Layer).
+Vendor logic is isolated behind a capability-based `Connector` interface; the
+platform stays vendor-neutral. `runCollection` provides the ARCHITECTURE processing
+guarantees — the canonical event envelope, idempotent ingestion + dedup by
+`source_record_id`, source lineage, health tracking, and a dead-letter path — and
+degrades a failed fetch to an integration health state instead of throwing.
+
+The shipped **NinjaOne** example maps a recorded device fixture → canonical events
+→ `MetricObservation`s (RMM coverage, patch compliance, offline devices,
+unsupported OS) that flow straight into the scoring engine. `connectors.test.ts` is
+the contract test (TESTING_STRATEGY "Contract Tests"): envelope completeness,
+normalized states, idempotent dedup, health-on-auth-failure, and end-to-end into
+`computeHealth` / `computeCoverage`. A production connector only swaps `fetchRaw`
+for an authenticated API call.
+
+## Persistence (Phases 1–2)
+
+`prisma/` is the ready-to-run Postgres target for the canonical model:
+
+- `schema.prisma` — every entity from DATA_MODEL.md, `tenantId` on all of them.
+- `rls.sql` — PostgreSQL **row-level security** so tenant isolation is enforced in
+  the database, keyed on `app.current_tenant` (bound per transaction).
+- `repository.ts` — the tenant-scoped access pattern (`withTenant` binds the tenant
+  before every query; RLS does the rest).
+- `seed.ts` — loads the **same deterministic data** the app renders into the DB, so
+  the two never diverge.
+
+```bash
+export DATABASE_URL=postgres://…
+npm install            # generates the Prisma client
+npm run db:migrate     # create tables
+npm run db:rls         # apply row-level security
+npm run db:seed        # load seed data
+```
+
+The running app still uses the in-memory model; `prisma/` is excluded from the app
+build (it depends on the generated client). It is the seam to swap the in-memory
+source for Postgres once a database is provisioned.
 
 ## Design system
 

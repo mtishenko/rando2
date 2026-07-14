@@ -1,0 +1,326 @@
+// Edgefi Pulse — canonical data model (DATA_MODEL.md), multi-tenant.
+//
+// Every business entity carries tenantId; row-level security is enforced in
+// prisma/rls.sql (ARCHITECTURE.md "Enforce tenant scoping ... with PostgreSQL
+// row-level security where practical"). This schema is the Phase 1–2 persistence
+// target; the running app currently uses the deterministic in-memory model, and
+// `prisma/seed.ts` loads that same data into the database.
+//
+// Setup:  npm run db:generate && npm run db:migrate && npm run db:seed
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MetricState {
+  PASS
+  PARTIAL
+  FAIL
+  EXPECTED_DATA_MISSING
+  DATA_STALE
+  SOURCE_ERROR
+  NOT_APPLICABLE
+  NOT_PURCHASED
+  EXCEPTION_ACTIVE
+  UNKNOWN
+}
+
+enum IntegrationState {
+  HEALTHY
+  DEGRADED
+  AUTH_FAILED
+  RATE_LIMITED
+  OFFLINE
+  NOT_CONFIGURED
+  DISABLED
+}
+
+enum RiskEventState {
+  OPEN
+  ACKNOWLEDGED
+  ASSIGNED
+  IN_PROGRESS
+  PENDING_CUSTOMER
+  PENDING_VENDOR
+  MITIGATED
+  VERIFIED_RESOLVED
+  ACCEPTED
+  SUPPRESSED
+  REOPENED
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  customers          Customer[]
+  metricDefinitions  MetricDefinition[]
+  auditEvents        AuditEvent[]
+}
+
+model Customer {
+  id                String   @id @default(uuid())
+  tenantId          String
+  legalName         String
+  displayName       String
+  tier              String
+  status            String   @default("active")
+  industry          String
+  employeeCount     Int
+  managedPopulation Int
+  accountOwner      String
+  serviceManager    String
+  criticality       Int
+  timezone          String   @default("UTC")
+  onboardingDate    DateTime
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tenant             Tenant               @relation(fields: [tenantId], references: [id])
+  profiles           CustomerProfile[]
+  capabilities       CustomerCapability[]
+  integrations       Integration[]
+  observations       MetricObservation[]
+  findings           Finding[]
+  riskEvents         RiskEvent[]
+  exceptions         Exception[]
+  scoreSnapshots     ScoreSnapshot[]
+
+  @@index([tenantId])
+}
+
+model CustomerProfile {
+  id                String   @id @default(uuid())
+  tenantId          String
+  customerId        String
+  version           Int
+  serviceScope      Json
+  riskProfile       Json
+  expectedPopulations Json
+  criticalSystems   Json
+  approved          Boolean  @default(false)
+  effectiveDate     DateTime
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@unique([customerId, version])
+  @@index([tenantId])
+}
+
+model CustomerCapability {
+  id                    String @id @default(uuid())
+  tenantId              String
+  customerId            String
+  capability            String
+  responsibilityModel   String
+  contractedState       String
+  authoritativeSource   String?
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@unique([customerId, capability])
+  @@index([tenantId])
+}
+
+model Integration {
+  id                  String           @id @default(uuid())
+  tenantId            String
+  customerId          String
+  type                String
+  capability          String
+  state               IntegrationState @default(NOT_CONFIGURED)
+  credentialRef       String?
+  lastSuccessAt       DateTime?
+  lastFailureAt       DateTime?
+  failureCount        Int              @default(0)
+  errorCode           String?
+  frequencyMinutes    Int              @default(60)
+  critical            Boolean          @default(false)
+  configuration       Json?
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([tenantId])
+  @@index([customerId])
+}
+
+model MetricDefinition {
+  id                      String   @id // e.g. "IDENTITY-001"
+  tenantId                String
+  name                    String
+  category                String
+  capability              String
+  source                  String
+  target                  String
+  criticality             String
+  weight                  Int
+  freshnessThresholdHours Int
+  businessRisk            String
+  remediation             String
+  ownerRole               String
+  populationBased         Boolean
+  version                 String
+  immutable               Boolean  @default(true)
+
+  tenant       Tenant              @relation(fields: [tenantId], references: [id])
+  observations MetricObservation[]
+
+  @@index([tenantId])
+}
+
+model MetricObservation {
+  id                 String      @id @default(uuid())
+  tenantId           String
+  customerId         String
+  metricId           String
+  state              MetricState
+  value              Float       @default(0)
+  observedAt         DateTime
+  ageHours           Float       @default(0)
+  source             String
+  populationExpected Int         @default(0)
+  populationObserved Int         @default(0)
+  sourceReliability  Float       @default(1)
+  evidenceQuality    Float       @default(1)
+  evidenceNote       String      @default("")
+
+  customer Customer         @relation(fields: [customerId], references: [id])
+  metric   MetricDefinition @relation(fields: [metricId], references: [id])
+
+  @@index([tenantId])
+  @@index([customerId, metricId])
+}
+
+model Finding {
+  id         String      @id @default(uuid())
+  tenantId   String
+  customerId String
+  metricId   String
+  state      MetricState
+  severity   Float
+  observedAt DateTime
+
+  customer   Customer   @relation(fields: [customerId], references: [id])
+  riskEvent  RiskEvent? @relation(fields: [riskEventId], references: [id])
+  riskEventId String?
+
+  @@index([tenantId])
+}
+
+model RiskEvent {
+  id                    String         @id @default(uuid())
+  tenantId              String
+  customerId            String
+  title                 String
+  capability            String
+  category              String
+  state                 RiskEventState @default(OPEN)
+  priorityScore         Int
+  priorityBand          String
+  businessImpact        String
+  primaryReason         String
+  confidence            Float
+  metricIds             String[]
+  firstSeenAt           DateTime
+  lastSeenAt            DateTime
+  ageDays               Float
+  recurrenceCount       Int            @default(0)
+  trend                 String
+  owner                 String?
+  verificationMetricId  String?
+  verificationSatisfied Boolean        @default(false)
+  breakdown             Json
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  customer        Customer         @relation(fields: [customerId], references: [id])
+  findings        Finding[]
+  recommendations Recommendation[]
+  workItems       WorkItem[]
+
+  @@index([tenantId])
+  @@index([customerId])
+}
+
+model Recommendation {
+  id                        String  @id @default(uuid())
+  tenantId                  String
+  riskEventId               String
+  action                    String
+  suggestedOwnerRole        String
+  estimatedEffortHours      Float
+  expectedHealthImprovement Float
+  expectedRiskReduction     Float
+  requiresHumanApproval     Boolean @default(true)
+
+  riskEvent RiskEvent @relation(fields: [riskEventId], references: [id])
+
+  @@index([tenantId])
+}
+
+model WorkItem {
+  id           String   @id @default(uuid())
+  tenantId     String
+  riskEventId  String
+  haloTicketId String?
+  status       String
+  createdAt    DateTime @default(now())
+
+  riskEvent RiskEvent @relation(fields: [riskEventId], references: [id])
+
+  @@index([tenantId])
+}
+
+model Exception {
+  id           String   @id @default(uuid())
+  tenantId     String
+  customerId   String
+  metricId     String
+  reason       String
+  approvedBy   String
+  effectiveAt  DateTime
+  expiresAt    DateTime?
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([tenantId])
+}
+
+model ScoreSnapshot {
+  id           String   @id @default(uuid())
+  tenantId     String
+  customerId   String
+  modelVersion String
+  health       Float
+  coverage     Float
+  confidence   Float
+  capturedAt   DateTime @default(now())
+  detail       Json
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([tenantId])
+  @@index([customerId, capturedAt])
+}
+
+model AuditEvent {
+  id         String   @id @default(uuid())
+  tenantId   String
+  actor      String
+  action     String
+  targetType String
+  targetId   String
+  before     Json?
+  after      Json?
+  createdAt  DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+}

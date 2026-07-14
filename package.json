@@ -9,10 +9,15 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev --name init",
+    "db:rls": "psql \"$DATABASE_URL\" -f prisma/rls.sql",
+    "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.111.0",
+    "@prisma/client": "^6.2.1",
     "next": "15.1.6",
     "react": "19.0.0",
     "react-dom": "19.0.0"
@@ -21,6 +26,8 @@
     "@types/node": "22.10.7",
     "@types/react": "19.0.7",
     "@types/react-dom": "19.0.3",
+    "prisma": "^6.2.1",
+    "tsx": "^4.19.2",
     "typescript": "5.7.3",
     "vitest": "3.0.4"
   }
