@@ -1,0 +1,15 @@
+{
+  "account": "sample-org",
+  "expectedSystems": 10,
+  "systems": [
+    { "id": "sys-1", "name": "file-server", "protected": true, "lastJobStatus": "success", "lastFailureHours": 0 },
+    { "id": "sys-2", "name": "sql-primary", "protected": true, "lastJobStatus": "success", "lastFailureHours": 0 },
+    { "id": "sys-3", "name": "sql-replica", "protected": true, "lastJobStatus": "failed", "lastFailureHours": 31 },
+    { "id": "sys-4", "name": "app-server-1", "protected": true, "lastJobStatus": "success", "lastFailureHours": 0 },
+    { "id": "sys-5", "name": "app-server-2", "protected": true, "lastJobStatus": "success", "lastFailureHours": 0 },
+    { "id": "sys-6", "name": "dc-primary", "protected": true, "lastJobStatus": "success", "lastFailureHours": 0 },
+    { "id": "sys-7", "name": "exchange", "protected": true, "lastJobStatus": "success", "lastFailureHours": 0 },
+    { "id": "sys-8", "name": "fileshare-2", "protected": true, "lastJobStatus": "failed", "lastFailureHours": 9 },
+    { "id": "sys-9", "name": "web-server", "protected": true, "lastJobStatus": "success", "lastFailureHours": 0 }
+  ]
+}

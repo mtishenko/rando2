@@ -1,0 +1,14 @@
+{
+  "tenantDomain": "sample-org",
+  "legacyAuthBlocked": true,
+  "users": [
+    { "id": "u-1", "upn": "ceo@corp.example.com", "isPrivileged": true, "mfaRegistered": true },
+    { "id": "u-2", "upn": "itadmin@corp.example.com", "isPrivileged": true, "mfaRegistered": true },
+    { "id": "u-3", "upn": "secadmin@corp.example.com", "isPrivileged": true, "mfaRegistered": false },
+    { "id": "u-4", "upn": "alice@corp.example.com", "isPrivileged": false, "mfaRegistered": true },
+    { "id": "u-5", "upn": "bob@corp.example.com", "isPrivileged": false, "mfaRegistered": true },
+    { "id": "u-6", "upn": "carol@corp.example.com", "isPrivileged": false, "mfaRegistered": true },
+    { "id": "u-7", "upn": "dave@corp.example.com", "isPrivileged": false, "mfaRegistered": false },
+    { "id": "u-8", "upn": "erin@corp.example.com", "isPrivileged": false, "mfaRegistered": true }
+  ]
+}

@@ -40,7 +40,7 @@ npm test         # scoring + acceptance-scenario suite (Vitest)
 | Customer portal | `src/lib/ui/portal.ts`, `src/app/(portal)/` | Customer-facing posture view with strict display safety (capability-level, vendor-free) |
 | Workflow engine | `src/lib/workflow/` | HaloPSA ticket lifecycle: draft/create/sync, duplicate prevention, verification-gated close, outage queue |
 | Access control | `src/lib/auth/` | Entra-ready roles + permissions, API guards, cross-tenant + field gating (commercials/COGS) |
-| Connector SDK | `src/lib/connectors/` | Canonical event envelope, connector interface, health/idempotency, NinjaOne example + fixture + contract test |
+| Connector SDK | `src/lib/connectors/` | Canonical event envelope, connector interface, health/idempotency, registry of 4 connectors (NinjaOne, Microsoft Graph, MSP360, CrowdStrike) + fixtures + contract tests |
 | Persistence | `prisma/` | Postgres schema (canonical model, tenant-scoped), RLS policies, seed from the deterministic model |
 | Seed data | `src/lib/data/` | 14 deterministic customers; the 5 acceptance scenarios baked in |
 | UI | `src/app/` | Office TV, Command Center, Customer & Risk-event drill-downs, Executive, Integrations, Metric Registry |
