@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getRiskEvent } from "@/lib/data/compute";
 import { workflowEngine } from "@/lib/workflow/instance";
 import { REFERENCE_NOW } from "@/lib/data/generate";
+import { identityFromRequest } from "@/lib/auth/identity";
+import { AuthzError, authzStatus, requirePermission } from "@/lib/auth/guard";
 
 /** GET /api/risk-events/{id}/work — current work item for this event. */
 export async function GET(_req: Request, { params }: { params: Promise<{ riskEventId: string }> }) {
@@ -14,8 +16,16 @@ export async function GET(_req: Request, { params }: { params: Promise<{ riskEve
  * POST /api/risk-events/{id}/work — create accountable HaloPSA work for a risk
  * event. Idempotent (one ticket per event); queues on Halo outage.
  */
-export async function POST(_req: Request, { params }: { params: Promise<{ riskEventId: string }> }) {
+export async function POST(req: Request, { params }: { params: Promise<{ riskEventId: string }> }) {
   const { riskEventId } = await params;
+  try {
+    requirePermission(identityFromRequest(req), "risk:manage");
+  } catch (err) {
+    if (err instanceof AuthzError) {
+      return NextResponse.json({ error: err.code, message: err.message }, { status: authzStatus(err) });
+    }
+    throw err;
+  }
   const found = getRiskEvent(riskEventId);
   if (!found) return NextResponse.json({ error: "not_found" }, { status: 404 });
 

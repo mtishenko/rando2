@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import RoleSwitcher from "@/components/RoleSwitcher";
 
 /* 16px stroke-1.75 line icons (edgefi nav spec) */
 const icons: Record<string, React.ReactNode> = {
@@ -93,7 +94,8 @@ export default function Sidebar() {
       </nav>
 
       <div style={{ marginTop: "auto", paddingTop: 16 }}>
-        <div className="tagline">
+        <RoleSwitcher />
+        <div className="tagline" style={{ marginTop: 14 }}>
           <span className="cdot" />
           Contain the chaos.
         </div>

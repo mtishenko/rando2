@@ -7,8 +7,11 @@ import { scoreStatus, oneDp } from "@/lib/ui/format";
 import { Metric, Trend, HealthBar } from "@/components/ui";
 import type { Capability } from "@/lib/types";
 import PageShell from "@/components/PageShell";
+import { getServerIdentity } from "@/lib/auth/server";
+import { can } from "@/lib/auth/guard";
 
-export const dynamic = "force-static";
+// Dynamic: reads the current identity (cookie) to gate commercial overlays.
+export const dynamic = "force-dynamic";
 
 const CAP_LABEL: Record<Capability, string> = {
   endpoint_management: "Endpoint management",
@@ -23,9 +26,27 @@ const CAP_LABEL: Record<Capability, string> = {
   grc: "Governance, risk & compliance",
 };
 
-export default function ExecutivePage() {
+function renewalRisk(health: number, health7dChange: number): "High" | "Medium" | "Low" {
+  if (health < 80 || health7dChange <= -6) return "High";
+  if (health < 90) return "Medium";
+  return "Low";
+}
+
+export default async function ExecutivePage() {
+  const identity = await getServerIdentity();
+  const showCommercials = can(identity, "commercials:view");
   const pm = getPortfolioModel();
   const p = pm.portfolio;
+
+  const renewalRows = pm.customers
+    .map((m) => ({
+      id: m.customer.id,
+      name: m.customer.displayName,
+      tier: m.customer.tier,
+      band: renewalRisk(m.scores.health, m.scores.health7dChange),
+    }))
+    .filter((r) => r.band !== "Low")
+    .sort((a, b) => (a.band === "High" ? -1 : 1) - (b.band === "High" ? -1 : 1));
 
   const caps = Object.keys(CAP_LABEL) as Capability[];
   const coverageByCap = caps
@@ -204,6 +225,36 @@ export default function ExecutivePage() {
           </div>
         </div>
       </div>
+
+      {showCommercials ? (
+        <div className="panel" style={{ marginTop: 18 }}>
+          <div className="ph">
+            <b>Renewal risk</b>
+            <span className="sub2">commercial · role-restricted</span>
+          </div>
+          <div className="pbody">
+            {renewalRows.length === 0 && <div className="empty-note">No accounts at renewal risk.</div>}
+            {renewalRows.map((r) => (
+              <div key={r.id} className="spread" style={{ padding: "8px 0" }}>
+                <span>
+                  {r.name} <span className="faint" style={{ fontSize: 12 }}>· {r.tier}</span>
+                </span>
+                <span className={`pill ${r.band === "High" ? "err" : "warn"}`}>
+                  <span className="dot" />
+                  {r.band} renewal risk
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="notice" style={{ marginTop: 18 }}>
+          <span>
+            Commercial overlays (renewal risk, account value) are restricted to executive and account
+            roles. You are viewing as <b>{identity.roles[0]}</b>.
+          </span>
+        </div>
+      )}
     </PageShell>
   );
 }

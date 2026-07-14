@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getRiskEvent } from "@/lib/data/compute";
+import { identityFromRequest } from "@/lib/auth/identity";
+import { AuthzError, authzStatus, requirePermission } from "@/lib/auth/guard";
 
 /** GET /api/risk-events/{riskEventId} — risk event detail. */
 export async function GET(_req: Request, { params }: { params: Promise<{ riskEventId: string }> }) {
@@ -16,6 +18,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ riskEve
  */
 export async function PATCH(req: Request, { params }: { params: Promise<{ riskEventId: string }> }) {
   const { riskEventId } = await params;
+  try {
+    requirePermission(identityFromRequest(req), "risk:manage");
+  } catch (err) {
+    if (err instanceof AuthzError) {
+      return NextResponse.json({ error: err.code, message: err.message }, { status: authzStatus(err) });
+    }
+    throw err;
+  }
   const found = getRiskEvent(riskEventId);
   if (!found) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
