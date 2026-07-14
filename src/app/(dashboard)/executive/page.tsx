@@ -3,30 +3,30 @@ import { getPortfolioModel } from "@/lib/data/compute";
 import { METRICS_BY_ID } from "@/lib/metrics/catalog";
 import { effectiveWeight } from "@/lib/scoring/customer";
 import { hasUsableEvidence, isApplicable } from "@/lib/scoring/state";
-import { scoreBand, oneDp } from "@/lib/ui/format";
+import { scoreStatus, oneDp } from "@/lib/ui/format";
 import { Metric, Trend, HealthBar } from "@/components/ui";
 import type { Capability } from "@/lib/types";
+import PageShell from "@/components/PageShell";
 
 export const dynamic = "force-static";
 
 const CAP_LABEL: Record<Capability, string> = {
-  endpoint_management: "Endpoint Management",
-  edr: "Endpoint Detection & Response",
-  identity_security: "Identity Security",
-  m365_security: "Microsoft 365 Security",
-  mdr: "Managed Detection & Response",
-  backup: "Backup & Recovery",
-  network_management: "Network Management",
+  endpoint_management: "Endpoint management",
+  edr: "Endpoint detection & response",
+  identity_security: "Identity security",
+  m365_security: "Microsoft 365 security",
+  mdr: "Managed detection & response",
+  backup: "Backup & recovery",
+  network_management: "Network management",
   documentation: "Documentation",
-  service_management: "Service Management",
-  grc: "Governance, Risk & Compliance",
+  service_management: "Service management",
+  grc: "Governance, risk & compliance",
 };
 
 export default function ExecutivePage() {
   const pm = getPortfolioModel();
   const p = pm.portfolio;
 
-  // Coverage by capability across the whole portfolio (weighted).
   const caps = Object.keys(CAP_LABEL) as Capability[];
   const coverageByCap = caps
     .map((cap) => {
@@ -45,7 +45,6 @@ export default function ExecutivePage() {
     })
     .filter((x) => x.coverage !== null) as { cap: Capability; coverage: number }[];
 
-  // Impact by customer (top improvers).
   const impactByCustomer = pm.customers
     .map((m) => ({ name: m.customer.displayName, delta: m.scores.healthDelta30d }))
     .sort((a, b) => b.delta - a.delta)
@@ -59,20 +58,22 @@ export default function ExecutivePage() {
     .filter((m) => m.scores.unverifiedCriticalControls > 0)
     .sort((a, b) => b.scores.unverifiedCriticalControls - a.scores.unverifiedCriticalControls);
 
-  return (
-    <>
-      <div className="page-head">
-        <div>
-          <h1 className="page-title">Executive Portfolio Dashboard</h1>
-          <div className="page-sub">
-            Portfolio health, risk, delivery effectiveness, and customer-value trends
-          </div>
-        </div>
-      </div>
+  const impactRows = [
+    { label: "Verified risk reduction", v: p.impact.verifiedRiskReduction, w: "35%" },
+    { label: "Customer health improvement", v: p.impact.healthImprovement, w: "25%" },
+    { label: "Coverage improvement", v: p.impact.coverageImprovement, w: "20%" },
+    { label: "Recurrence prevention", v: p.impact.recurrencePrevention, w: "10%" },
+    { label: "Durable control improvement", v: p.impact.durableControlImprovement, w: "10%" },
+  ];
 
-      <div className="grid cols-3" style={{ marginBottom: 18 }}>
-        <Metric label="Customer Health" value={oneDp(p.health)} band={scoreBand(p.health)}>
-          <div className="metric-foot">
+  return (
+    <PageShell
+      title="Executive portfolio dashboard"
+      sub="Portfolio health, risk, delivery effectiveness, and customer-value trends"
+    >
+      <div className="grid cols-3" style={{ marginBottom: 22 }}>
+        <Metric label="Customer health" value={p.health}>
+          <div className="mfoot">
             <span>
               30-day <Trend value={p.healthDelta30d} />
             </span>
@@ -81,8 +82,8 @@ export default function ExecutivePage() {
             </span>
           </div>
         </Metric>
-        <Metric label="Measurement Coverage" value={oneDp(p.coverage)} unit="%" band={scoreBand(p.coverage)}>
-          <div className="metric-foot">
+        <Metric label="Measurement coverage" value={p.coverage} unit="%">
+          <div className="mfoot">
             <span>
               30-day <Trend value={p.coverageDelta30d} />
             </span>
@@ -91,8 +92,8 @@ export default function ExecutivePage() {
             </span>
           </div>
         </Metric>
-        <Metric label="Edgefi Impact · month" value={oneDp(p.impact.total)} band="good">
-          <div className="metric-foot">
+        <Metric label="edgefi impact · month" value={p.impact.total} tone="edgefi">
+          <div className="mfoot">
             <span>
               <b>{p.risksResolvedThisMonth}</b> risks resolved
             </span>
@@ -104,96 +105,105 @@ export default function ExecutivePage() {
       </div>
 
       <div className="grid cols-2" style={{ alignItems: "start", marginBottom: 18 }}>
-        <div className="panel">
-          <div className="panel-title">Impact composition (this month)</div>
-          {[
-            { label: "Verified risk reduction", v: p.impact.verifiedRiskReduction, w: "35%" },
-            { label: "Customer health improvement", v: p.impact.healthImprovement, w: "25%" },
-            { label: "Coverage improvement", v: p.impact.coverageImprovement, w: "20%" },
-            { label: "Recurrence prevention", v: p.impact.recurrencePrevention, w: "10%" },
-            { label: "Durable control improvement", v: p.impact.durableControlImprovement, w: "10%" },
-          ].map((row) => (
-            <div className="factor" key={row.label} style={{ gridTemplateColumns: "220px 1fr 46px" }}>
-              <span>
-                {row.label} <span className="muted">({row.w})</span>
-              </span>
-              <div className="fbar">
-                <span style={{ width: `${row.v}%` }} />
+        <div className="panel" style={{ marginBottom: 0 }}>
+          <div className="ph">
+            <b>Impact composition</b>
+            <span className="sub2">this month · verified outcomes only</span>
+          </div>
+          <div className="pbody">
+            {impactRows.map((row) => (
+              <div className="factor presence" key={row.label} style={{ gridTemplateColumns: "220px 1fr 44px" }}>
+                <span>
+                  {row.label} <span className="faint">({row.w})</span>
+                </span>
+                <div className="fbar">
+                  <span style={{ width: `${row.v}%` }} />
+                </div>
+                <span className="fval">{oneDp(row.v)}</span>
               </div>
-              <span className="mono dim" style={{ textAlign: "right" }}>
-                {oneDp(row.v)}
-              </span>
+            ))}
+            <div className="notice" style={{ marginTop: 14, marginBottom: 0 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              <span>Ticket closure alone earns no impact credit — every component reflects a verified outcome.</span>
             </div>
-          ))}
-          <div className="notice" style={{ marginTop: 14 }}>
-            Ticket closure alone earns no impact credit — every component reflects a verified outcome.
           </div>
         </div>
 
-        <div className="panel">
-          <div className="panel-title">Coverage by capability</div>
-          {coverageByCap
-            .sort((a, b) => a.coverage - b.coverage)
-            .map((c) => (
-              <div key={c.cap} className="spread" style={{ padding: "7px 0" }}>
-                <span style={{ width: 210, fontSize: 13 }}>{CAP_LABEL[c.cap]}</span>
-                <HealthBar value={c.coverage} width={200} />
-              </div>
-            ))}
+        <div className="panel" style={{ marginBottom: 0 }}>
+          <div className="ph">
+            <b>Coverage by capability</b>
+          </div>
+          <div className="pbody">
+            {coverageByCap
+              .sort((a, b) => a.coverage - b.coverage)
+              .map((c) => (
+                <div key={c.cap} className="spread" style={{ padding: "6px 0" }}>
+                  <span style={{ width: 220, fontSize: 13 }}>{CAP_LABEL[c.cap]}</span>
+                  <HealthBar value={c.coverage} width={180} />
+                </div>
+              ))}
+          </div>
         </div>
       </div>
 
       <div className="grid cols-3" style={{ alignItems: "start" }}>
-        <div className="panel">
-          <div className="panel-title">Customers below threshold</div>
-          {belowThreshold.length === 0 && <div className="muted">None below 80.</div>}
-          {belowThreshold.map((m) => (
-            <Link
-              href={`/customers/${m.customer.id}`}
-              key={m.customer.id}
-              className="spread"
-              style={{ padding: "9px 0", borderBottom: "1px solid var(--border)" }}
-            >
-              <span>{m.customer.displayName}</span>
-              <span className={`band-${scoreBand(m.scores.health)}`} style={{ fontWeight: 700 }}>
-                {oneDp(m.scores.health)}
-              </span>
-            </Link>
-          ))}
+        <div className="panel" style={{ marginBottom: 0 }}>
+          <div className="ph">
+            <b>Customers below threshold</b>
+          </div>
+          <div>
+            {belowThreshold.length === 0 && <div className="empty-note">None below 80.</div>}
+            {belowThreshold.map((m) => (
+              <Link key={m.customer.id} href={`/customers/${m.customer.id}`} className="jt-row">
+                <div className="tt2">
+                  <b>{m.customer.displayName}</b>
+                </div>
+                <span className={`s-${scoreStatus(m.scores.health)}`} style={{ fontWeight: 600 }}>
+                  {oneDp(m.scores.health)}
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
 
-        <div className="panel">
-          <div className="panel-title">Critical unverified controls</div>
-          {criticalUnverified.length === 0 && <div className="muted">None.</div>}
-          {criticalUnverified.map((m) => (
-            <Link
-              href={`/customers/${m.customer.id}`}
-              key={m.customer.id}
-              className="spread"
-              style={{ padding: "9px 0", borderBottom: "1px solid var(--border)" }}
-            >
-              <span>{m.customer.displayName}</span>
-              <span className="band-critical" style={{ fontWeight: 700 }}>
-                {m.scores.unverifiedCriticalControls}
-              </span>
-            </Link>
-          ))}
+        <div className="panel" style={{ marginBottom: 0 }}>
+          <div className="ph">
+            <b>Critical unverified controls</b>
+          </div>
+          <div>
+            {criticalUnverified.length === 0 && <div className="empty-note">None.</div>}
+            {criticalUnverified.map((m) => (
+              <Link key={m.customer.id} href={`/customers/${m.customer.id}`} className="jt-row">
+                <div className="tt2">
+                  <b>{m.customer.displayName}</b>
+                </div>
+                <span className="s-danger" style={{ fontWeight: 600 }}>
+                  {m.scores.unverifiedCriticalControls}
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
 
-        <div className="panel">
-          <div className="panel-title">Top health improvers (30-day)</div>
-          {impactByCustomer.map((c) => (
-            <div
-              key={c.name}
-              className="spread"
-              style={{ padding: "9px 0", borderBottom: "1px solid var(--border)" }}
-            >
-              <span>{c.name}</span>
-              <Trend value={c.delta} />
-            </div>
-          ))}
+        <div className="panel" style={{ marginBottom: 0 }}>
+          <div className="ph">
+            <b>Top health improvers</b>
+            <span className="sub2">30-day</span>
+          </div>
+          <div>
+            {impactByCustomer.map((c) => (
+              <div key={c.name} className="jt-row">
+                <div className="tt2">
+                  <b>{c.name}</b>
+                </div>
+                <Trend value={c.delta} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </>
+    </PageShell>
   );
 }

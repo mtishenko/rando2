@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getRiskEvent, getPortfolioModel } from "@/lib/data/compute";
 import { getMetric } from "@/lib/metrics/catalog";
 import { oneDp, riskStateLabel, metricStateClass, metricStateLabel, ageLabel } from "@/lib/ui/format";
+import PageShell from "@/components/PageShell";
 
 export const dynamic = "force-static";
 
@@ -33,193 +34,191 @@ export default async function RiskEventPage({ params }: { params: Promise<{ id: 
   ).map((k) => ({ label: FACTOR_LABELS[k], value: b[k] as number }));
 
   return (
-    <>
-      <div className="page-head">
-        <div>
-          <div className="muted" style={{ fontSize: 13, marginBottom: 4 }}>
-            <Link href="/" className="link">
-              Command Center
-            </Link>{" "}
-            /{" "}
-            <Link href={`/customers/${m.customer.id}`} className="link">
-              {m.customer.displayName}
-            </Link>
-          </div>
-          <h1 className="page-title">{e.title}</h1>
-          <div className="page-sub">
-            {riskStateLabel(e.state)} · first seen {ageLabel(e.ageDays)} ago · trend {e.trend} ·
-            recurrence ×{e.recurrenceCount}
-          </div>
-        </div>
-        <div className="stack" style={{ alignItems: "flex-end", gap: 8 }}>
-          <span className={`pill band-${e.priorityBand.toLowerCase()}`} style={{ fontSize: 15, padding: "6px 14px" }}>
-            {e.priorityBand} · {e.priorityScore}/1000
-          </span>
-          <span className="muted" style={{ fontSize: 12 }}>
-            Owner: <b>{e.owner ?? "unassigned"}</b>
-          </span>
-        </div>
-      </div>
-
+    <PageShell
+      title={e.title}
+      sub={
+        <>
+          <Link href={`/customers/${m.customer.id}`} className="link">
+            {m.customer.displayName}
+          </Link>{" "}
+          / {riskStateLabel(e.state)} · first seen {ageLabel(e.ageDays)} ago · trend {e.trend} ·
+          recurrence ×{e.recurrenceCount}
+        </>
+      }
+      actions={
+        <span className={`pill p-${e.priorityBand.toLowerCase()}`} style={{ fontSize: 13, padding: "6px 12px" }}>
+          <span className="dot" />
+          {e.priorityBand} · {e.priorityScore}/1000
+        </span>
+      }
+    >
       <div className="grid cols-2" style={{ alignItems: "start", marginBottom: 18 }}>
-        <div className="panel">
-          <div className="panel-title">Business impact</div>
-          <p style={{ marginTop: 0, fontSize: 15, lineHeight: 1.5 }}>{e.businessImpact}</p>
-          <div className="divider" />
-          <dl className="kv">
-            <dt>Capability</dt>
-            <dd>{e.capability.replace(/_/g, " ")}</dd>
-            <dt>Category</dt>
-            <dd>{e.category}</dd>
-            <dt>Confidence</dt>
-            <dd>{oneDp(e.confidence * 100)}%</dd>
-            <dt>Primary reason</dt>
-            <dd>{e.primaryReason}</dd>
-          </dl>
-          {e.tvInclusionReasons.length > 0 && (
-            <>
-              <div className="divider" />
-              <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>
-                TV inclusion reasons
-              </div>
-              <div className="reason-tags">
-                {e.tvInclusionReasons.map((r) => (
-                  <span className="tag" key={r}>
-                    {r}
-                  </span>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="panel">
-          <div className="panel-title">Priority explainability</div>
-          <p className="muted" style={{ marginTop: 0, fontSize: 12 }}>
-            Priority = Severity × Business criticality × Exposure × Trend × Age × Population ×
-            Confidence × Responsibility, normalized 0–1000.
-          </p>
-          {factorRows.map((f) => (
-            <div className="factor" key={f.label}>
-              <span>{f.label}</span>
-              <div className="fbar">
-                <span style={{ width: `${f.value * 100}%` }} />
-              </div>
-              <span className="mono dim" style={{ textAlign: "right" }}>
-                {f.value.toFixed(2)}
-              </span>
-            </div>
-          ))}
-          <div className="divider" />
-          {b.boosts.length > 0 && (
-            <div style={{ marginBottom: 8 }}>
-              <span className="muted" style={{ fontSize: 12 }}>
-                Boosts:{" "}
-              </span>
-              {b.boosts.map((x) => (
-                <span className="tag" key={x.label} style={{ borderColor: "var(--band-high)" }}>
-                  {x.label} ×{x.factor}
-                </span>
-              ))}
-            </div>
-          )}
-          {b.reductions.length > 0 && (
-            <div>
-              <span className="muted" style={{ fontSize: 12 }}>
-                Reductions:{" "}
-              </span>
-              {b.reductions.map((x) => (
-                <span className="tag" key={x.label} style={{ borderColor: "var(--excellent)" }}>
-                  {x.label} ×{x.factor}
-                </span>
-              ))}
-            </div>
-          )}
-          <div className="spread" style={{ marginTop: 12 }}>
-            <span className="muted" style={{ fontSize: 12 }}>
-              Normalized base {b.raw.toFixed(3)}
-            </span>
-            <span style={{ fontWeight: 800, fontSize: 20 }}>{e.priorityScore}/1000</span>
+        <div className="panel" style={{ marginBottom: 0 }}>
+          <div className="ph">
+            <b>Business impact</b>
           </div>
-        </div>
-      </div>
-
-      <div className="grid cols-2" style={{ alignItems: "start", marginBottom: 18 }}>
-        <div className="panel">
-          <div className="panel-title">Recommended next best action</div>
-          <p style={{ marginTop: 0, fontSize: 15, fontWeight: 600 }}>{e.recommendation.action}</p>
-          <dl className="kv" style={{ marginTop: 12 }}>
-            <dt>Suggested owner role</dt>
-            <dd>{e.recommendation.suggestedOwnerRole}</dd>
-            <dt>Estimated effort</dt>
-            <dd>{e.recommendation.estimatedEffortHours} hours</dd>
-            <dt>Expected health improvement</dt>
-            <dd className="band-good">+{oneDp(e.recommendation.expectedHealthImprovement)} pts</dd>
-            <dt>Expected risk reduction</dt>
-            <dd>{Math.round(e.recommendation.expectedRiskReduction * 100)}%</dd>
-            <dt>Approval required</dt>
-            <dd>{e.recommendation.requiresHumanApproval ? "Yes — human approval" : "No"}</dd>
-          </dl>
-          <div className="row" style={{ marginTop: 14, gap: 10 }}>
-            <button className="btn btn-accent">Create HaloPSA ticket</button>
-            <button className="btn">Assign owner</button>
-          </div>
-        </div>
-
-        <div className="panel">
-          <div className="panel-title">Verification gate</div>
-          <div
-            className="notice"
-            style={{
-              borderColor: e.verificationSatisfied ? "rgba(52,211,153,0.4)" : "rgba(251,146,60,0.4)",
-              background: e.verificationSatisfied ? "rgba(52,211,153,0.08)" : "rgba(251,146,60,0.08)",
-            }}
-          >
-            {e.verificationSatisfied ? (
+          <div className="pbody">
+            <p style={{ fontSize: 14.5, lineHeight: 1.55, marginBottom: 14 }}>{e.businessImpact}</p>
+            <dl className="kv">
+              <dt>Capability</dt>
+              <dd>{e.capability.replace(/_/g, " ")}</dd>
+              <dt>Category</dt>
+              <dd>{e.category}</dd>
+              <dt>Confidence</dt>
+              <dd>{oneDp(e.confidence * 100)}%</dd>
+              <dt>Owner</dt>
+              <dd>{e.owner ?? "unassigned"}</dd>
+            </dl>
+            {e.tvInclusionReasons.length > 0 && (
               <>
-                Verification satisfied — <b>{e.verificationMetricId}</b> is passing. This event may be
-                marked <b>Verified Resolved</b>.
-              </>
-            ) : (
-              <>
-                Not yet verified. Resolution requires <b>{e.verificationMetricId}</b> to pass. A closed
-                ticket alone does not resolve this event — work only earns credit after a verified
-                outcome.
+                <div className="divider" />
+                <div className="micro" style={{ marginBottom: 6 }}>
+                  TV inclusion reasons
+                </div>
+                <div>
+                  {e.tvInclusionReasons.map((r) => (
+                    <span className="rtag" key={r}>
+                      {r}
+                    </span>
+                  ))}
+                </div>
               </>
             )}
           </div>
-          <div className="divider" />
-          <div className="panel-title" style={{ marginBottom: 8 }}>
-            Contributing metrics ({e.metricIds.length})
+        </div>
+
+        <div className="panel" style={{ marginBottom: 0 }}>
+          <div className="ph">
+            <b>Priority explainability</b>
+            <span className="sub2">normalized 0–1000</span>
           </div>
-          <table className="table">
-            <tbody>
-              {e.metricIds.map((mid) => {
-                const def = getMetric(mid);
-                const obs = m.observations.find((o) => o.metricId === mid)!;
-                return (
-                  <tr key={mid}>
-                    <td>
-                      <span style={{ fontWeight: 600 }}>{def.name}</span>
-                      <div className="muted mono" style={{ fontSize: 11 }}>
-                        {def.id}
-                      </div>
-                    </td>
-                    <td>
-                      <span className={`chip ${metricStateClass(obs.state)}`}>
-                        {metricStateLabel(obs.state)}
-                      </span>
-                    </td>
-                    <td className="dim" style={{ fontSize: 13 }}>
-                      {obs.evidenceNote}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="pbody">
+            <p className="muted" style={{ fontSize: 12, marginBottom: 10 }}>
+              Severity × Business criticality × Exposure × Trend × Age × Population × Confidence ×
+              Responsibility.
+            </p>
+            {factorRows.map((f) => (
+              <div className="factor" key={f.label}>
+                <span>{f.label}</span>
+                <div className="fbar">
+                  <span style={{ width: `${f.value * 100}%` }} />
+                </div>
+                <span className="fval">{f.value.toFixed(2)}</span>
+              </div>
+            ))}
+            {(b.boosts.length > 0 || b.reductions.length > 0) && <div className="divider" />}
+            {b.boosts.map((x) => (
+              <span className="rtag" key={x.label} style={{ borderColor: "var(--warn)", color: "var(--warn)" }}>
+                ↑ {x.label} ×{x.factor}
+              </span>
+            ))}
+            {b.reductions.map((x) => (
+              <span className="rtag" key={x.label} style={{ borderColor: "var(--ok)", color: "var(--ok)" }}>
+                ↓ {x.label} ×{x.factor}
+              </span>
+            ))}
+            <div className="spread" style={{ marginTop: 14 }}>
+              <span className="muted" style={{ fontSize: 12 }}>
+                normalized base {b.raw.toFixed(3)}
+              </span>
+              <span style={{ fontWeight: 700, fontSize: 20 }} className="mono">
+                {e.priorityScore}
+                <span className="faint" style={{ fontSize: 14 }}>
+                  /1000
+                </span>
+              </span>
+            </div>
+          </div>
         </div>
       </div>
-    </>
+
+      <div className="grid cols-2" style={{ alignItems: "start" }}>
+        <div className="panel" style={{ marginBottom: 0 }}>
+          <div className="ph">
+            <b>Recommended next best action</b>
+          </div>
+          <div className="pbody">
+            <p style={{ fontSize: 14.5, fontWeight: 550, marginBottom: 14 }}>{e.recommendation.action}</p>
+            <dl className="kv">
+              <dt>Suggested owner role</dt>
+              <dd>{e.recommendation.suggestedOwnerRole}</dd>
+              <dt>Estimated effort</dt>
+              <dd>{e.recommendation.estimatedEffortHours} hours</dd>
+              <dt>Expected health improvement</dt>
+              <dd className="s-ok">+{oneDp(e.recommendation.expectedHealthImprovement)} pts</dd>
+              <dt>Expected risk reduction</dt>
+              <dd>{Math.round(e.recommendation.expectedRiskReduction * 100)}%</dd>
+              <dt>Approval required</dt>
+              <dd>{e.recommendation.requiresHumanApproval ? "Yes — human approval" : "No"}</dd>
+            </dl>
+            <div className="row" style={{ marginTop: 16 }}>
+              <button className="btn btn-pri">Create HaloPSA ticket</button>
+              <button className="btn btn-ghost">Assign owner</button>
+            </div>
+          </div>
+        </div>
+
+        <div className="panel" style={{ marginBottom: 0 }}>
+          <div className="ph">
+            <b>Verification gate</b>
+          </div>
+          <div className="pbody">
+            <div
+              className="notice"
+              style={{
+                marginBottom: 16,
+                borderColor: e.verificationSatisfied ? "var(--ok)" : "var(--warn)",
+                background: e.verificationSatisfied ? "var(--ok-bg)" : "var(--warn-bg)",
+                color: e.verificationSatisfied ? "var(--ok)" : "var(--warn)",
+              }}
+            >
+              <span>
+                {e.verificationSatisfied ? (
+                  <>
+                    Verification satisfied — <b>{e.verificationMetricId}</b> is passing. This event
+                    may be marked verified resolved.
+                  </>
+                ) : (
+                  <>
+                    Not yet verified. Resolution requires <b>{e.verificationMetricId}</b> to pass. A
+                    closed ticket alone does not resolve this event — work earns credit only after a
+                    verified outcome.
+                  </>
+                )}
+              </span>
+            </div>
+            <div className="micro" style={{ marginBottom: 8 }}>
+              Contributing metrics ({e.metricIds.length})
+            </div>
+            <table>
+              <tbody>
+                {e.metricIds.map((mid) => {
+                  const def = getMetric(mid);
+                  const obs = m.observations.find((o) => o.metricId === mid)!;
+                  return (
+                    <tr key={mid}>
+                      <td style={{ padding: "12px 0" }}>
+                        <div style={{ fontWeight: 550 }}>{def.name}</div>
+                        <div className="faint mono" style={{ fontSize: 11 }}>
+                          {def.id}
+                        </div>
+                      </td>
+                      <td style={{ padding: "12px 0" }}>
+                        <span className={`mchip ${metricStateClass(obs.state)}`}>
+                          {metricStateLabel(obs.state)}
+                        </span>
+                      </td>
+                      <td className="muted" style={{ padding: "12px 0", fontSize: 13 }}>
+                        {obs.evidenceNote}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </PageShell>
   );
 }

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { getPortfolioModel } from "@/lib/data/compute";
 import { toSummary } from "@/lib/ui/summary";
-import { scoreBand, oneDp } from "@/lib/ui/format";
+import { oneDp } from "@/lib/ui/format";
 import { Metric, Trend } from "@/components/ui";
 import AttentionBoard from "@/components/AttentionBoard";
+import PageShell from "@/components/PageShell";
 
 export const dynamic = "force-static";
 
@@ -13,28 +14,25 @@ export default function CommandCenterPage() {
   const summaries = pm.customers.map(toSummary);
 
   return (
-    <>
-      <div className="page-head">
-        <div>
-          <h1 className="page-title">Command Center</h1>
-          <div className="page-sub">
-            {pm.commandCenter.operatingDay} · {summaries.length} managed customers · data freshness{" "}
-            {oneDp(pm.commandCenter.dataFreshnessHours)}h
-          </div>
-        </div>
-        <Link href="/tv" className="btn btn-accent">
-          ▦ Launch Office TV
+    <PageShell
+      title="Command center"
+      sub={`${pm.commandCenter.operatingDay} · ${summaries.length} managed customers · data freshness ${oneDp(
+        pm.commandCenter.dataFreshnessHours,
+      )}h`}
+      actions={
+        <Link href="/tv" className="btn btn-pri">
+          Launch office TV
         </Link>
-      </div>
-
-      <div className="grid cols-3" style={{ marginBottom: 18 }}>
-        <Metric label="Customer Health" value={oneDp(p.health)} band={scoreBand(p.health)}>
-          <div className="metric-foot">
+      }
+    >
+      <div className="grid cols-3" style={{ marginBottom: 22 }}>
+        <Metric label="Customer health" value={p.health}>
+          <div className="mfoot">
             <span>
               30-day <Trend value={p.healthDelta30d} />
             </span>
             <span>
-              Target <b>≥ 85</b>
+              target <b>≥ 85</b>
             </span>
             <span>
               <b>{p.customersBelowThreshold}</b> below threshold
@@ -42,8 +40,8 @@ export default function CommandCenterPage() {
           </div>
         </Metric>
 
-        <Metric label="Measurement Coverage" value={oneDp(p.coverage)} unit="%" band={scoreBand(p.coverage)}>
-          <div className="metric-foot">
+        <Metric label="Measurement coverage" value={p.coverage} unit="%">
+          <div className="mfoot">
             <span>
               30-day <Trend value={p.coverageDelta30d} />
             </span>
@@ -56,8 +54,8 @@ export default function CommandCenterPage() {
           </div>
         </Metric>
 
-        <Metric label="Edgefi Impact · this month" value={oneDp(p.impact.total)} band="good">
-          <div className="metric-foot">
+        <Metric label="edgefi impact · this month" value={p.impact.total} tone="edgefi">
+          <div className="mfoot">
             <span>
               <b>{p.risksResolvedThisMonth}</b> resolved
             </span>
@@ -71,16 +69,19 @@ export default function CommandCenterPage() {
         </Metric>
       </div>
 
-      <div className="panel-title" style={{ paddingLeft: 2 }}>
-        Customers requiring attention
-      </div>
       <AttentionBoard customers={summaries} />
 
-      <div className="notice" style={{ marginTop: 16 }}>
-        Confidence supporting metric: portfolio evidence confidence is{" "}
-        <b>{oneDp(p.confidence * 100)}%</b>. Missing, stale, and error states reduce coverage and
-        confidence and create work — they never silently improve health.
+      <div className="notice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 8h.01M11 12h1v4h1" />
+        </svg>
+        <span>
+          Evidence confidence across the portfolio is <b>{oneDp(p.confidence * 100)}%</b>. Missing,
+          stale, and error states reduce coverage and confidence and create work — they never
+          silently improve health.
+        </span>
       </div>
-    </>
+    </PageShell>
   );
 }

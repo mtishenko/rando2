@@ -1,29 +1,21 @@
 import Link from "next/link";
 import { getPortfolioModel } from "@/lib/data/compute";
 import { toSummary } from "@/lib/ui/summary";
-import { oneDp } from "@/lib/ui/format";
+import { oneDp, scoreStatus } from "@/lib/ui/format";
 import { HealthBar, Trend } from "@/components/ui";
+import PageShell from "@/components/PageShell";
 
 export const dynamic = "force-static";
 
 export default function CustomersPage() {
   const pm = getPortfolioModel();
-  const rows = pm.customers
-    .map(toSummary)
-    .sort((a, b) => a.health - b.health);
+  const rows = pm.customers.map(toSummary).sort((a, b) => a.health - b.health);
 
   return (
-    <>
-      <div className="page-head">
-        <div>
-          <h1 className="page-title">Customers</h1>
-          <div className="page-sub">{rows.length} managed customers · sorted by health ascending</div>
-        </div>
-      </div>
-
+    <PageShell title="Customers" sub={`${rows.length} managed customers · sorted by health ascending`}>
       <div className="panel">
         <div style={{ overflowX: "auto" }}>
-          <table className="table">
+          <table>
             <thead>
               <tr>
                 <th>Customer</th>
@@ -39,35 +31,36 @@ export default function CustomersPage() {
             </thead>
             <tbody>
               {rows.map((c) => (
-                <tr key={c.id}>
+                <tr key={c.id} className="click">
                   <td>
-                    <Link href={`/customers/${c.id}`} className="link" style={{ fontWeight: 600 }}>
+                    <Link href={`/customers/${c.id}`} className="link">
                       {c.name}
                     </Link>
-                    <div className="muted" style={{ fontSize: 12 }}>
+                    <div className="faint" style={{ fontSize: 12 }}>
                       {c.industry}
                     </div>
                   </td>
-                  <td className="dim">{c.tier}</td>
+                  <td className="muted">{c.tier}</td>
                   <td>
-                    <HealthBar value={c.health} width={80} />
+                    <HealthBar value={c.health} width={76} />
                   </td>
                   <td>
                     <Trend value={c.healthDelta30d} />
                   </td>
-                  <td className="dim">{oneDp(c.coverage)}%</td>
-                  <td className="dim">{oneDp(c.confidence * 100)}%</td>
-                  <td className="num dim">{c.openEvents}</td>
-                  <td className="num" style={{ color: c.unverifiedCritical ? "var(--critical)" : "var(--text-3)" }}>
+                  <td className={`s-${scoreStatus(c.coverage)}`}>{oneDp(c.coverage)}%</td>
+                  <td className="muted">{oneDp(c.confidence * 100)}%</td>
+                  <td className="num muted">{c.openEvents}</td>
+                  <td className={`num ${c.unverifiedCritical ? "s-danger" : "faint"}`} style={{ fontWeight: 600 }}>
                     {c.unverifiedCritical}
                   </td>
                   <td>
                     {c.priorityScore > 0 ? (
-                      <span className={`pill band-${c.priorityBand.toLowerCase()}`}>
+                      <span className={`pill p-${c.priorityBand.toLowerCase()}`}>
+                        <span className="dot" />
                         {c.priorityBand} · {c.priorityScore}
                       </span>
                     ) : (
-                      <span className="muted">—</span>
+                      <span className="faint">—</span>
                     )}
                   </td>
                 </tr>
@@ -76,6 +69,6 @@ export default function CustomersPage() {
           </table>
         </div>
       </div>
-    </>
+    </PageShell>
   );
 }

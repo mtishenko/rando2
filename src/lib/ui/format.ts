@@ -1,16 +1,15 @@
 import type { MetricState, RiskEventState } from "@/lib/types";
 
-/** Health / score band → semantic color token (see globals.css). */
-export function scoreBand(score: number): "excellent" | "good" | "watch" | "poor" | "critical" {
-  if (score >= 90) return "excellent";
-  if (score >= 80) return "good";
-  if (score >= 65) return "watch";
-  if (score >= 50) return "poor";
-  return "critical";
+/** Score → status token (ok / warn / danger), the canonical edgefi status colors. */
+export function scoreStatus(score: number): "ok" | "warn" | "danger" {
+  if (score >= 85) return "ok";
+  if (score >= 70) return "warn";
+  return "danger";
 }
 
-export function priorityBandClass(band: string): string {
-  return `band-${band.toLowerCase()}`;
+/** Priority band → priority-pill class suffix. */
+export function priorityClass(band: string): string {
+  return `p-${band.toLowerCase()}`;
 }
 
 export function pct(n: number): string {
@@ -26,17 +25,17 @@ export function signed(n: number): string {
   return `${r > 0 ? "+" : ""}${r}`;
 }
 
+/** Trend arrow class (status semantics). invert=true means "down is good". */
+export function trendClass(n: number, invert = false): "t-up" | "t-down" | "t-flat" {
+  if (Math.abs(n) < 0.5) return "t-flat";
+  const good = invert ? n < 0 : n > 0;
+  return good ? "t-up" : "t-down";
+}
+
 export function trendArrow(n: number): string {
   if (n > 0.5) return "▲";
   if (n < -0.5) return "▼";
   return "▬";
-}
-
-export function trendClass(n: number, invert = false): string {
-  const good = invert ? n < 0 : n > 0;
-  const bad = invert ? n > 0 : n < 0;
-  if (Math.abs(n) < 0.5) return "trend-flat";
-  return good ? "trend-up" : bad ? "trend-down" : "trend-flat";
 }
 
 const METRIC_STATE_LABEL: Record<MetricState, string> = {
@@ -56,21 +55,22 @@ export function metricStateLabel(s: MetricState): string {
   return METRIC_STATE_LABEL[s];
 }
 
+/** Metric-state → chip class (reuses status semantics). */
 export function metricStateClass(s: MetricState): string {
   switch (s) {
     case "PASS":
-      return "state-pass";
+      return "st-pass";
     case "PARTIAL":
-      return "state-partial";
+      return "st-partial";
     case "FAIL":
-      return "state-fail";
+      return "st-fail";
     case "EXCEPTION_ACTIVE":
-      return "state-exception";
+      return "st-exception";
     case "NOT_PURCHASED":
     case "NOT_APPLICABLE":
-      return "state-na";
+      return "st-na";
     default:
-      return "state-unverified";
+      return "st-unverified";
   }
 }
 
@@ -96,6 +96,5 @@ export function ageLabel(days: number): string {
   if (days < 1) return "today";
   if (days === 1) return "1 day";
   if (days < 30) return `${Math.round(days)} days`;
-  const months = Math.round(days / 30);
-  return `${months} mo`;
+  return `${Math.round(days / 30)} mo`;
 }

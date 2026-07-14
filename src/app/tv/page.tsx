@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getPortfolioModel } from "@/lib/data/compute";
-import { scoreBand, signed, ageLabel, oneDp } from "@/lib/ui/format";
+import { scoreStatus, oneDp, ageLabel } from "@/lib/ui/format";
 import { Trend } from "@/components/ui";
 import LiveClock from "@/components/LiveClock";
 
@@ -14,41 +14,45 @@ export default function TvPage() {
   return (
     <div className="tv">
       <div className="tv-head">
-        <div className="tv-title">
-          <span className="brand-mark">P</span>
-          <div className="stack" style={{ gap: 2 }}>
-            <h1>Edgefi Pulse</h1>
-            <span className="brand-sub">Operations Command Center</span>
-          </div>
+        <div className="tv-brand">
+          <span className="mark">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/logomark_purple.png" alt="edgefi" />
+          </span>
+          <b>
+            edgefi <span>pulse</span>
+          </b>
         </div>
         <div className="tv-meta">
           <div className="stack">
-            <span className="lbl">Operating day</span>
+            <span className="micro">operating day</span>
             <span className="big">{cc.operatingDay}</span>
           </div>
           <div className="stack">
-            <span className="lbl">Data freshness</span>
+            <span className="micro">data freshness</span>
             <span className="big">{oneDp(cc.dataFreshnessHours)}h</span>
           </div>
           <div className="stack">
-            <span className="lbl">Last refresh</span>
-            <LiveClock />
+            <span className="micro">last refresh</span>
+            <span className="big">
+              <LiveClock />
+            </span>
           </div>
         </div>
       </div>
 
       <div className="tv-metrics">
         <div className="tv-metric">
-          <div className="metric-label">Customer Health</div>
-          <div className="metric-value">
-            <span className={`band-${scoreBand(p.health)}`}>{oneDp(p.health)}</span>
+          <div className="ml">customer health</div>
+          <div className="mv">
+            <span className={`s-${scoreStatus(p.health)}`}>{oneDp(p.health)}</span>
           </div>
-          <div className="metric-foot">
+          <div className="mfoot">
             <span>
               30-day <Trend value={p.healthDelta30d} />
             </span>
             <span>
-              Target <b>≥ 85</b>
+              target <b>≥ 85</b>
             </span>
             <span>
               <b>{p.customersBelowThreshold}</b> below threshold
@@ -57,12 +61,12 @@ export default function TvPage() {
         </div>
 
         <div className="tv-metric">
-          <div className="metric-label">Measurement Coverage</div>
-          <div className="metric-value">
-            <span className={`band-${scoreBand(p.coverage)}`}>{oneDp(p.coverage)}</span>
-            <span className="metric-unit">%</span>
+          <div className="ml">measurement coverage</div>
+          <div className="mv">
+            <span className={`s-${scoreStatus(p.coverage)}`}>{oneDp(p.coverage)}</span>
+            <span className="mu">%</span>
           </div>
-          <div className="metric-foot">
+          <div className="mfoot">
             <span>
               30-day <Trend value={p.coverageDelta30d} />
             </span>
@@ -76,11 +80,11 @@ export default function TvPage() {
         </div>
 
         <div className="tv-metric">
-          <div className="metric-label">Edgefi Impact · this month</div>
-          <div className="metric-value">
-            <span className="band-good">{oneDp(p.impact.total)}</span>
+          <div className="ml">edgefi impact · this month</div>
+          <div className="mv">
+            <span className="s-edgefi">{oneDp(p.impact.total)}</span>
           </div>
-          <div className="metric-foot">
+          <div className="mfoot">
             <span>
               <b>{p.risksResolvedThisMonth}</b> risks resolved
             </span>
@@ -96,10 +100,10 @@ export default function TvPage() {
 
       {rows.length >= 1 ? (
         <div className="tv-table-wrap">
-          <table className="tv-table">
+          <table>
             <thead>
               <tr>
-                <th>#</th>
+                <th style={{ width: 40 }}>#</th>
                 <th>Customer</th>
                 <th>Priority</th>
                 <th>Health</th>
@@ -114,40 +118,44 @@ export default function TvPage() {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.customer.id}>
-                  <td className="rank">{r.rank}</td>
+                  <td className="mono faint">{r.rank}</td>
                   <td className="cust">{r.customer.displayName}</td>
                   <td>
-                    <span className={`pill band-${r.priorityBand.toLowerCase()}`}>
+                    <span className={`pill p-${r.priorityBand.toLowerCase()}`}>
+                      <span className="dot" />
                       {r.priorityBand} · {r.priorityScore}
                     </span>
                   </td>
                   <td>
-                    <span className={`band-${scoreBand(r.scores.health)}`} style={{ fontWeight: 700 }}>
+                    <span className={`s-${scoreStatus(r.scores.health)}`} style={{ fontWeight: 600 }}>
                       {oneDp(r.scores.health)}
                     </span>
                   </td>
                   <td>
                     <Trend value={r.health7dChange} />
                   </td>
-                  <td className="dim">{r.primaryReason}</td>
-                  <td className="dim">{ageLabel(r.riskAgeDays)}</td>
-                  <td className="dim">{r.owner ?? "—"}</td>
-                  <td className="dim" style={{ maxWidth: 320 }}>
+                  <td className="muted">{r.primaryReason}</td>
+                  <td className="muted">{ageLabel(r.riskAgeDays)}</td>
+                  <td className="muted">{r.owner ?? "—"}</td>
+                  <td className="muted" style={{ maxWidth: 300 }}>
                     {r.nextBestAction}
                   </td>
-                  <td className="num band-good">+{signed(r.expectedImprovement).replace("+", "")}</td>
+                  <td className="num s-ok" style={{ fontWeight: 600 }}>
+                    +{oneDp(r.expectedImprovement)}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
           <div className="tv-caption">
             <span>
-              Ranked by priority (business impact, urgency, trend, exposure, confidence) — not lowest
-              health. Display names only; no hosts, users, IPs, or CVEs shown.
+              Ranked by priority — business impact, urgency, trend, exposure, and confidence.
+              Approved display names only; no users, hosts, IPs, or CVEs.
             </span>
-            <Link href="/" className="link">
-              Open Command Center →
-            </Link>
+            <span className="tagline">
+              <span className="cdot" />
+              Contain the chaos.
+            </span>
           </div>
         </div>
       ) : (
@@ -159,17 +167,19 @@ export default function TvPage() {
 
 function EmptyState({ wins }: { wins: { customer: string; description: string; impactPoints: number }[] }) {
   return (
-    <div className="tv-table-wrap" style={{ padding: 28 }}>
-      <h2 style={{ marginBottom: 6 }}>All clear — no customers require action today</h2>
-      <p className="dim" style={{ marginTop: 0 }}>
+    <div className="tv-table-wrap" style={{ padding: 26 }}>
+      <h2 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-.4px" }}>
+        All clear — no customers require action today
+      </h2>
+      <p className="muted" style={{ margin: "6px 0 18px" }}>
         Recent verified wins and coverage improvements:
       </p>
       <div className="wins">
         {wins.map((w) => (
           <div className="win" key={w.customer}>
             <div className="amt">+{w.impactPoints}</div>
-            <div style={{ fontWeight: 700, marginTop: 4 }}>{w.customer}</div>
-            <div className="dim" style={{ fontSize: 13 }}>
+            <div style={{ fontWeight: 600, marginTop: 4 }}>{w.customer}</div>
+            <div className="muted" style={{ fontSize: 13 }}>
               {w.description}
             </div>
           </div>

@@ -2,9 +2,9 @@ import Sidebar from "@/components/Sidebar";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="app-shell">
+    <div className="app">
       <Sidebar />
-      <main className="main">{children}</main>
+      <div className="main">{children}</div>
     </div>
   );
 }

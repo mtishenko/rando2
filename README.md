@@ -89,6 +89,17 @@ All five are covered by `src/lib/data/acceptance.test.ts`:
 | 7 · AI layer | Grounded, deterministic QBR assembler (`POST /api/reports/qbr`) |
 | 2 · Integrations, 6 · more integrations, 8 · portal | Represented by seeded data; live connectors are next |
 
+## Design system
+
+The entire UI follows the **edgefi design system** (`edgefi-design` skill):
+Poppins, a neutral white canvas, and the color laws — **ink = action**, **purple =
+edgefi's presence only** (impact number and chart fills, never interactive),
+**chartreuse = one signature moment** (the "Contain the chaos." tagline dot), 1px
+borders, no card shadows, no gradients. The shipped tokens and component library
+live in `src/app/tokens.css` and `src/app/edgefi-ui.css`; the Pulse-specific layer
+(hero metrics, health bars, priority pills) is in `src/app/globals.css` and derives
+every value from the system.
+
 ## Notes
 
 - All data is **deterministic** (seeded PRNG + a fixed reference time), so scores,

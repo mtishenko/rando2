@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getPortfolioModel } from "@/lib/data/compute";
 import { ageLabel, riskStateLabel } from "@/lib/ui/format";
+import PageShell from "@/components/PageShell";
 
 export const dynamic = "force-static";
 
@@ -10,22 +11,16 @@ export default function RiskListPage() {
   const events = pm.allEvents.slice(0, 60);
 
   return (
-    <>
-      <div className="page-head">
-        <div>
-          <h1 className="page-title">Risk Events</h1>
-          <div className="page-sub">
-            {pm.allEvents.length} open events across the portfolio · ranked by priority
-          </div>
-        </div>
-      </div>
-
+    <PageShell
+      title="Risk events"
+      sub={`${pm.allEvents.length} open events across the portfolio · ranked by priority`}
+    >
       <div className="panel">
         <div style={{ overflowX: "auto" }}>
-          <table className="table">
+          <table>
             <thead>
               <tr>
-                <th className="rank">#</th>
+                <th style={{ width: 34 }}>#</th>
                 <th>Risk event</th>
                 <th>Customer</th>
                 <th>Priority</th>
@@ -37,29 +32,38 @@ export default function RiskListPage() {
             </thead>
             <tbody>
               {events.map((e, i) => (
-                <tr key={e.id}>
-                  <td className="rank">{i + 1}</td>
+                <tr key={e.id} className="click">
+                  <td className="mono faint">{i + 1}</td>
                   <td>
-                    <Link href={`/risk-events/${e.id}`} className="link" style={{ fontWeight: 600 }}>
+                    <Link href={`/risk-events/${e.id}`} className="link">
                       {e.title}
                     </Link>
-                    <div className="muted" style={{ fontSize: 12 }}>
+                    <div className="faint" style={{ fontSize: 12 }}>
                       {e.primaryReason}
                     </div>
                   </td>
-                  <td className="dim">{nameById.get(e.customerId)}</td>
+                  <td className="muted">{nameById.get(e.customerId)}</td>
                   <td>
-                    <span className={`pill band-${e.priorityBand.toLowerCase()}`}>
+                    <span className={`pill p-${e.priorityBand.toLowerCase()}`}>
+                      <span className="dot" />
                       {e.priorityBand} · {e.priorityScore}
                     </span>
                   </td>
-                  <td className="dim">{riskStateLabel(e.state)}</td>
-                  <td className="dim">{ageLabel(e.ageDays)}</td>
-                  <td className="dim">{e.owner ?? "—"}</td>
+                  <td className="muted">{riskStateLabel(e.state)}</td>
+                  <td className="muted">{ageLabel(e.ageDays)}</td>
+                  <td className="muted">{e.owner ?? "—"}</td>
                   <td>
-                    <span className={e.verificationSatisfied ? "band-excellent" : "band-poor"}>
-                      {e.verificationSatisfied ? "Verified" : "Pending"}
-                    </span>
+                    {e.verificationSatisfied ? (
+                      <span className="pill ok">
+                        <span className="dot" />
+                        Verified
+                      </span>
+                    ) : (
+                      <span className="pill mut">
+                        <span className="dot" />
+                        Pending
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -67,6 +71,6 @@ export default function RiskListPage() {
           </table>
         </div>
       </div>
-    </>
+    </PageShell>
   );
 }

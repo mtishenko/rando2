@@ -1,0 +1,34 @@
+/* edgefi design tokens — the single source for every surface.
+   Import this before edgefi-ui.css or your own styles. */
+:root {
+  /* brand */
+  --purple: #6501E5;        /* edgefi's presence ONLY: grade rings, brand numbers, chart fills */
+  --purple-700: #4D02AE;
+  --purple-100: #ECE3FC;
+  --purple-050: #F5F1FE;
+  --chart: #C4F63A;         /* chartreuse: ONE signature moment per surface */
+
+  /* neutrals — the canvas */
+  --ink: #0A0A0A;           /* action color: buttons, active nav, focus */
+  --ink-2: #404040;
+  --muted: #6B6B6B;
+  --faint: #979797;
+  --bg: #FFFFFF;
+  --surface: #FFFFFF;
+  --soft: #F5F5F5;
+  --soft-2: #FAFAFA;
+  --line: #E9E9E9;
+  --line2: #F1F1F1;
+  --line-strong: #DDDDDD;
+
+  /* status */
+  --ok: #177A4C;      --ok-bg: #EAF6EF;
+  --warn: #8A5A00;    --warn-bg: #FBF3E3;
+  --danger: #B42318;  --danger-bg: #FBEAE8;
+  --auto: #6501E5;    --auto-bg: #F5F1FE;  /* automated/system activity */
+
+  /* shape & type */
+  --r: 10px;
+  --r-sm: 8px;
+  --sans: 'Poppins','Segoe UI',system-ui,-apple-system,sans-serif;
+}

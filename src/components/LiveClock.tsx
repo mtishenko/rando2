@@ -19,5 +19,5 @@ export default function LiveClock() {
     return () => clearInterval(id);
   }, []);
 
-  return <span className="big mono">{now || "—"}</span>;
+  return <span className="mono">{now || "—"}</span>;
 }

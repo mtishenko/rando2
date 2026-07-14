@@ -3,63 +3,103 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+/* 16px stroke-1.75 line icons (edgefi nav spec) */
+const icons: Record<string, React.ReactNode> = {
+  command: <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />,
+  tv: (
+    <>
+      <rect x="2.5" y="4.5" width="19" height="13" rx="1.5" />
+      <path d="M8 21h8M12 17.5V21" />
+    </>
+  ),
+  risk: (
+    <>
+      <path d="M12 3 2.5 20h19L12 3z" />
+      <path d="M12 10v4M12 17h.01" />
+    </>
+  ),
+  exec: (
+    <>
+      <path d="M3 3v18h18" />
+      <path d="M7 15l4-5 3 3 5-7" />
+    </>
+  ),
+  customers: (
+    <>
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 5.5a3 3 0 0 1 0 6M17 20a5.5 5.5 0 0 0-3-4.9" />
+    </>
+  ),
+  integrations: <path d="M7 8l-4 4 4 4M17 8l4 4-4 4M14 4l-4 16" />,
+  metrics: <path d="M4 6h16M4 12h16M4 18h10" />,
+};
+
+function Icon({ name }: { name: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+      {icons[name]}
+    </svg>
+  );
+}
+
 const NAV = [
   {
-    group: "Operate",
+    group: "operate",
     items: [
-      { href: "/", label: "Command Center", icon: "◎" },
-      { href: "/tv", label: "Office TV", icon: "▦" },
-      { href: "/risk", label: "Risk Events", icon: "⚠" },
+      { href: "/", label: "Command center", icon: "command" },
+      { href: "/tv", label: "Office TV", icon: "tv" },
+      { href: "/risk", label: "Risk events", icon: "risk" },
     ],
   },
   {
-    group: "Analyze",
+    group: "analyze",
     items: [
-      { href: "/executive", label: "Executive", icon: "▤" },
-      { href: "/customers", label: "Customers", icon: "◍" },
-      { href: "/integrations", label: "Integrations", icon: "⇄" },
-      { href: "/metrics", label: "Metric Registry", icon: "≣" },
+      { href: "/executive", label: "Executive", icon: "exec" },
+      { href: "/customers", label: "Customers", icon: "customers" },
+      { href: "/integrations", label: "Integrations", icon: "integrations" },
+      { href: "/metrics", label: "Metric registry", icon: "metrics" },
     ],
   },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
   return (
-    <aside className="sidebar">
+    <aside className="side">
       <Link href="/" className="brand">
-        <span className="brand-mark">P</span>
-        <span className="stack" style={{ gap: 0 }}>
-          <span className="brand-name">Edgefi Pulse</span>
-          <span className="brand-sub">Operational Intelligence</span>
+        <span className="mark">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/logomark_purple.png" alt="edgefi" />
         </span>
+        <b>
+          edgefi <span>pulse</span>
+        </b>
       </Link>
 
-      {NAV.map((section) => (
-        <div key={section.group}>
-          <div className="nav-group-label">{section.group}</div>
-          {section.items.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`nav-link${isActive(item.href) ? " active" : ""}`}
-            >
-              <span className="nav-ico">{item.icon}</span>
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      ))}
+      <nav className="nav">
+        {NAV.map((section) => (
+          <div key={section.group}>
+            <div className="grp">{section.group}</div>
+            {section.items.map((item) => (
+              <Link key={item.href} href={item.href} className={isActive(item.href) ? "on" : ""}>
+                <Icon name={item.icon} />
+                <span className="lbl">{item.label}</span>
+              </Link>
+            ))}
+          </div>
+        ))}
+      </nav>
 
-      <div style={{ marginTop: "auto", fontSize: 11, color: "var(--text-3)" }}>
-        <div className="row" style={{ gap: 7 }}>
-          <span className="pulse-dot" />
-          Model v2026.07.0
+      <div style={{ marginTop: "auto", paddingTop: 16 }}>
+        <div className="tagline">
+          <span className="cdot" />
+          Contain the chaos.
         </div>
-        <div style={{ marginTop: 6 }}>MVP · scoring + command center</div>
+        <div className="micro" style={{ padding: "10px 0 0", letterSpacing: ".05em" }}>
+          model v2026.07.0
+        </div>
       </div>
     </aside>
   );
