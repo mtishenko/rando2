@@ -37,6 +37,7 @@ npm test         # scoring + acceptance-scenario suite (Vitest)
 | Scoring engine | `src/lib/scoring/` | Health, Coverage, Confidence, Impact, portfolio rollup (SCORING_MODEL.md) |
 | Risk engine | `src/lib/risk/` | Finding→risk-event grouping, 0–1000 priority with boosts/reductions, recommendations, verification gate |
 | AI reasoning | `src/lib/ai/` | Grounded change explanations & QBR narratives via the Claude API, with redaction, prompt registry, output validation, and a deterministic fallback |
+| Customer portal | `src/lib/ui/portal.ts`, `src/app/(portal)/` | Customer-facing posture view with strict display safety (capability-level, vendor-free) |
 | Seed data | `src/lib/data/` | 14 deterministic customers; the 5 acceptance scenarios baked in |
 | UI | `src/app/` | Office TV, Command Center, Customer & Risk-event drill-downs, Executive, Integrations, Metric Registry |
 | API | `src/app/api/` | REST routes matching `api/openapi-outline.yaml` |
@@ -117,6 +118,22 @@ adaptive thinking, structured outputs):
 
 Surfaced at `POST /api/risk-events/{id}/explain`, `POST /api/reports/qbr`, and the
 AI panel on each risk-event page.
+
+## Customer portal (Phase 8)
+
+`/portal/[id]` is the customer-facing surface (PRD-010). It shows a customer their
+Health, Coverage, Evidence Confidence, controls-verified count, progress deltas,
+what edgefi is working on for them, accepted risks, and reports — with **strict
+display safety**:
+
+- **No internal detail leaks** — capability-level, vendor-free wording only; never
+  metric IDs, product names, usernames, hosts, IPs, or CVEs. Enforced by
+  `src/lib/ui/portal.test.ts`, which scans every customer-facing string.
+- **Confirmed failures vs unverified controls are distinguished** — an event driven
+  by a real FAIL reads as an **Issue**; one driven by missing/stale/error data reads
+  as a **Visibility** gap (e.g. Cascade's missing sensor data), never conflated.
+- **Every statement maps to evidence**, and the entry point is tenant-isolated (a
+  customer only sees their own organization).
 
 ## Design system
 

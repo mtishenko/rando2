@@ -48,13 +48,18 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
         </>
       }
       actions={
-        <div className="stack right" style={{ fontSize: 12.5, gap: 2 }}>
-          <span className="muted">
-            account owner <b style={{ color: "var(--ink)" }}>{c.accountOwner}</b>
-          </span>
-          <span className="muted">
-            service manager <b style={{ color: "var(--ink)" }}>{c.serviceManager}</b>
-          </span>
+        <div className="row" style={{ gap: 16, alignItems: "center" }}>
+          <div className="stack right" style={{ fontSize: 12.5, gap: 2 }}>
+            <span className="muted">
+              account owner <b style={{ color: "var(--ink)" }}>{c.accountOwner}</b>
+            </span>
+            <span className="muted">
+              service manager <b style={{ color: "var(--ink)" }}>{c.serviceManager}</b>
+            </span>
+          </div>
+          <Link href={`/portal/${c.id}`} className="btn btn-ghost">
+            Customer portal
+          </Link>
         </div>
       }
     >
