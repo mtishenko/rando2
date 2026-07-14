@@ -47,6 +47,17 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
 
 export const ALL_ROLES = Object.keys(ROLE_PERMISSIONS) as Role[];
 
+export const ALL_PERMISSIONS: Permission[] = [
+  "portfolio:view",
+  "risk:manage",
+  "exception:approve",
+  "automation:approve",
+  "commercials:view",
+  "cost:view",
+  "admin:manage",
+  "portal:view",
+];
+
 export function permissionsFor(roles: Role[]): Set<Permission> {
   const set = new Set<Permission>();
   for (const r of roles) for (const p of ROLE_PERMISSIONS[r] ?? []) set.add(p);

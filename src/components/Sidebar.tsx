@@ -33,6 +33,17 @@ const icons: Record<string, React.ReactNode> = {
   ),
   integrations: <path d="M7 8l-4 4 4 4M17 8l4 4-4 4M14 4l-4 16" />,
   metrics: <path d="M4 6h16M4 12h16M4 18h10" />,
+  workspace: (
+    <>
+      <path d="M3 7h18v12H3zM3 7l2-3h14l2 3M9 12h6" />
+    </>
+  ),
+  admin: (
+    <>
+      <circle cx="12" cy="8" r="3.2" />
+      <path d="M5 20a7 7 0 0 1 14 0M19 4l1 2 2 .5-1.5 1.5.3 2-1.8-1-1.8 1 .3-2L16 6.5 18 6z" />
+    </>
+  ),
 };
 
 function Icon({ name }: { name: string }) {
@@ -50,6 +61,7 @@ const NAV = [
       { href: "/", label: "Command center", icon: "command" },
       { href: "/tv", label: "Office TV", icon: "tv" },
       { href: "/risk", label: "Risk events", icon: "risk" },
+      { href: "/workspace", label: "Engineer workspace", icon: "workspace" },
     ],
   },
   {
@@ -59,6 +71,7 @@ const NAV = [
       { href: "/customers", label: "Customers", icon: "customers" },
       { href: "/integrations", label: "Integrations", icon: "integrations" },
       { href: "/metrics", label: "Metric registry", icon: "metrics" },
+      { href: "/admin", label: "Administration", icon: "admin" },
     ],
   },
 ];

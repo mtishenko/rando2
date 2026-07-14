@@ -39,6 +39,7 @@ npm test         # scoring + acceptance-scenario suite (Vitest)
 | AI reasoning | `src/lib/ai/` | Grounded change explanations & QBR narratives via the Claude API, with redaction, prompt registry, output validation, and a deterministic fallback |
 | Customer portal | `src/lib/ui/portal.ts`, `src/app/(portal)/` | Customer-facing posture view with strict display safety (capability-level, vendor-free) |
 | Workflow engine | `src/lib/workflow/` | HaloPSA ticket lifecycle: draft/create/sync, duplicate prevention, verification-gated close, outage queue |
+| Automation engine | `src/lib/automation/` | Policy-gated actions: approval, opt-in, dry-run, idempotency, rollback, audit, auto-disable |
 | Access control | `src/lib/auth/` | Entra-ready roles + permissions, API guards, cross-tenant + field gating (commercials/COGS) |
 | Connector SDK | `src/lib/connectors/` | Canonical event envelope, connector interface, health/idempotency, registry of 4 connectors (NinjaOne, Microsoft Graph, MSP360, CrowdStrike) + fixtures + contract tests |
 | Persistence | `prisma/` | Postgres schema (canonical model, tenant-scoped), RLS policies, seed from the deterministic model |
@@ -179,6 +180,19 @@ npm run db:seed        # load seed data
 The running app still uses the in-memory model; `prisma/` is excluded from the app
 build (it depends on the generated client). It is the seam to swap the in-memory
 source for Postgres once a database is provisioned.
+
+## Automation, workspace & administration (PRD-011/014/015)
+
+- **Automation engine** (`src/lib/automation/`, PRD-014) — actions run only inside
+  an approved, enabled, customer-opted-in policy; remediation classes require
+  explicit per-run approval; dry-run never executes; runs are idempotent; repeated
+  failures auto-disable the policy; rollback is supported; every action is audited
+  with actor, policy, inputs, outputs, and verification. 8 tests.
+- **Engineer workspace** (`/workspace`, PRD-011) — assigned events with technical
+  evidence, runbooks, effort, and verification in one place; closure is disabled
+  until the verification metric passes. Role-gated (`risk:manage`).
+- **Administration** (`/admin`, PRD-015) — roles×permissions matrix, connector
+  registry, feature flags, and active exceptions. Role-gated (`admin:manage`).
 
 ## Design system
 
