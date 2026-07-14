@@ -4,6 +4,8 @@ import { getRiskEvent, getPortfolioModel } from "@/lib/data/compute";
 import { getMetric } from "@/lib/metrics/catalog";
 import { oneDp, riskStateLabel, metricStateClass, metricStateLabel, ageLabel } from "@/lib/ui/format";
 import PageShell from "@/components/PageShell";
+import { buildRiskEventEvidence } from "@/lib/ai/evidence";
+import { reason } from "@/lib/ai/reason";
 
 export const dynamic = "force-static";
 
@@ -32,6 +34,10 @@ export default async function RiskEventPage({ params }: { params: Promise<{ id: 
   const factorRows = (
     ["severity", "businessCriticality", "exposure", "trend", "age", "population", "confidence", "responsibility"] as const
   ).map((k) => ({ label: FACTOR_LABELS[k], value: b[k] as number }));
+
+  // Grounded AI change explanation (deterministic when no model is configured).
+  const evidence = buildRiskEventEvidence(e, m);
+  const ai = await reason("change-explanation", evidence);
 
   return (
     <PageShell
@@ -216,6 +222,59 @@ export default async function RiskEventPage({ params }: { params: Promise<{ id: 
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <div className="panel" style={{ marginTop: 18 }}>
+        <div className="ph">
+          <b>AI reasoning · change explanation</b>
+          <span className="sub2">
+            {ai.grounding.engine === "model" ? "model" : "deterministic"} ·{" "}
+            {ai.grounding.prompt_id}@{ai.grounding.prompt_version}
+          </span>
+        </div>
+        <div className="pbody">
+          {ai.output.status === "INSUFFICIENT_EVIDENCE" ? (
+            <div className="notice" style={{ marginBottom: 0 }}>
+              <span>
+                Insufficient evidence. {ai.output.missing_evidence.join(" ")}
+              </span>
+            </div>
+          ) : (
+            <>
+              <p style={{ fontSize: 14.5, lineHeight: 1.55, marginTop: 0 }}>{ai.output.summary}</p>
+              <dl className="kv" style={{ marginBottom: 14 }}>
+                <dt>Business impact</dt>
+                <dd>{ai.output.business_impact}</dd>
+                <dt>Technical reasoning</dt>
+                <dd>{ai.output.technical_reasoning}</dd>
+                <dt>Recommended action</dt>
+                <dd>{ai.output.recommended_action}</dd>
+                <dt>Suggested owner</dt>
+                <dd>{ai.output.suggested_owner_role}</dd>
+                <dt>Estimated effort</dt>
+                <dd>{ai.output.estimated_effort_hours} hours</dd>
+                <dt>Confidence</dt>
+                <dd>{oneDp(ai.output.confidence * 100)}%</dd>
+                <dt>Approval required</dt>
+                <dd>{ai.output.requires_human_approval ? "Yes — human approval" : "No"}</dd>
+              </dl>
+            </>
+          )}
+          <div className="divider" />
+          <div className="micro" style={{ marginBottom: 6 }}>
+            Grounding
+          </div>
+          <div style={{ fontSize: 12.5 }} className="muted">
+            Cites {ai.grounding.supporting_finding_ids.length} finding(s) ·{" "}
+            {ai.grounding.sources.length > 0 ? ai.grounding.sources.join(", ") : "no external sources"} ·
+            model {ai.grounding.model_version} ·{" "}
+            {ai.validation.valid ? "validated" : `validation issues: ${ai.validation.issues.join("; ")}`}
+          </div>
+          <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+            The reasoning layer explains and drafts only — it cannot mark a control passed or an event
+            resolved, and every claim is grounded in the redacted evidence above.
           </div>
         </div>
       </div>

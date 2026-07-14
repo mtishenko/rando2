@@ -36,6 +36,7 @@ npm test         # scoring + acceptance-scenario suite (Vitest)
 | Metric registry | `src/lib/metrics/catalog.ts` | All 42 metrics from METRIC_CATALOG.md, versioned, weighted by criticality |
 | Scoring engine | `src/lib/scoring/` | Health, Coverage, Confidence, Impact, portfolio rollup (SCORING_MODEL.md) |
 | Risk engine | `src/lib/risk/` | Finding→risk-event grouping, 0–1000 priority with boosts/reductions, recommendations, verification gate |
+| AI reasoning | `src/lib/ai/` | Grounded change explanations & QBR narratives via the Claude API, with redaction, prompt registry, output validation, and a deterministic fallback |
 | Seed data | `src/lib/data/` | 14 deterministic customers; the 5 acceptance scenarios baked in |
 | UI | `src/app/` | Office TV, Command Center, Customer & Risk-event drill-downs, Executive, Integrations, Metric Registry |
 | API | `src/app/api/` | REST routes matching `api/openapi-outline.yaml` |
@@ -88,6 +89,34 @@ All five are covered by `src/lib/data/acceptance.test.ts`:
 | 5 · Command Center | ✅ Office TV, service-manager console, drill-downs, executive |
 | 7 · AI layer | Grounded, deterministic QBR assembler (`POST /api/reports/qbr`) |
 | 2 · Integrations, 6 · more integrations, 8 · portal | Represented by seeded data; live connectors are next |
+
+## AI reasoning layer (Phase 7)
+
+`src/lib/ai/` implements the grounded reasoning layer from `AI_GOVERNANCE.md` /
+PRD-007, using the **Claude API** (`@anthropic-ai/sdk`, model `claude-opus-4-8`,
+adaptive thinking, structured outputs):
+
+- **Evidence builder + redaction** — assembles a redacted evidence package (the
+  only facts the model may use); usernames, hosts, IPs, and CVEs are stripped
+  before anything reaches the model.
+- **Prompt registry** — versioned prompts (`change-explanation`,
+  `risk-correlation`, `recommendation-draft`, `qbr-narrative`) enforcing the
+  governance contract: ground in evidence only, never mark pass/resolved, return
+  strict JSON, escalate `INSUFFICIENT_EVIDENCE`.
+- **Output validation** — rejects outputs that cite findings not in the evidence,
+  leak sensitive content, fail to ground an OK verdict, or under-flag high-impact
+  approval. An invalid or refused model output never reaches the caller.
+- **Grounding metadata** — every result carries customer ID, risk-event ID, cited
+  finding IDs, sources, evidence timestamps, and model + prompt version.
+- **Deterministic fallback** — when `ANTHROPIC_API_KEY` (or `ANTHROPIC_AUTH_TOKEN`)
+  is unset, a deterministic grounded assembler produces the same-shape output, so
+  the app runs end-to-end in dev and CI. Set a key to switch to live model calls.
+- **Eval harness** — `src/lib/ai/evaluate.ts` scores grounding accuracy,
+  unsupported-claim rate, JSON compliance, and status accuracy (TESTING_STRATEGY
+  "AI Evaluation").
+
+Surfaced at `POST /api/risk-events/{id}/explain`, `POST /api/reports/qbr`, and the
+AI panel on each risk-event page.
 
 ## Design system
 
