@@ -18,6 +18,22 @@ grounded, deterministic QBR assembler.
 > today; connectors to live vendor systems, HaloPSA sync, Entra SSO, and the
 > customer portal are subsequent phases.
 
+## View it on a phone / deploy
+
+The app is mobile-responsive. To open it on a phone you need a public URL — deploy
+it (zero config, **no env vars required** — the AI layer falls back to the
+deterministic engine when no key is set):
+
+**Vercel (fastest):** vercel.com → **Add New → Project → Import** `mtishenko/rando2`
+→ choose branch `claude/build-request-5ornry` → framework auto-detects as Next.js →
+**Deploy**. You get an `https://…vercel.app` URL that works on any phone. Optionally
+add `ANTHROPIC_API_KEY` later to switch the AI reasoning to live model calls.
+
+**Or from the CLI:** `npm i -g vercel && vercel` (from the repo root).
+
+**Local on your network:** `npm run dev -- -H 0.0.0.0`, then open
+`http://<your-computer-ip>:3000` from a phone on the same Wi-Fi.
+
 ## Quick start
 
 ```bash
