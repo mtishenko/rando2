@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "edgefi pulse",
   description:
     "operational intelligence for edgefi's managed services — customer health, measurement coverage, and edgefi impact.",
-  icons: { icon: "/brand/logomark_purple.png" },
+  icons: { icon: "/brand/logomark_black.png" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

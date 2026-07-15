@@ -17,7 +17,7 @@ export default function TvPage() {
         <div className="tv-brand">
           <span className="mark">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/logomark_purple.png" alt="edgefi" />
+            <img src="/brand/logomark_black.png" alt="edgefi" />
           </span>
           <b>
             edgefi <span>pulse</span>
