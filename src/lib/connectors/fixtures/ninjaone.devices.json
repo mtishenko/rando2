@@ -1,0 +1,18 @@
+{
+  "organization": "sample-org",
+  "generatedAt": "2026-07-14T13:40:00.000Z",
+  "devices": [
+    { "id": "dev-1001", "hostname": "WS-FINANCE-01.corp.local", "agentInstalled": true, "lastSeenMinutes": 4, "patchStatus": "compliant", "osSupported": true },
+    { "id": "dev-1002", "hostname": "WS-FINANCE-02.corp.local", "agentInstalled": true, "lastSeenMinutes": 12, "patchStatus": "compliant", "osSupported": true },
+    { "id": "dev-1003", "hostname": "WS-HR-01.corp.local", "agentInstalled": true, "lastSeenMinutes": 8, "patchStatus": "missing", "osSupported": true },
+    { "id": "dev-1004", "hostname": "WS-HR-02.corp.local", "agentInstalled": true, "lastSeenMinutes": 3120, "patchStatus": "compliant", "osSupported": true },
+    { "id": "dev-1005", "hostname": "WS-OPS-01.corp.local", "agentInstalled": true, "lastSeenMinutes": 6, "patchStatus": "compliant", "osSupported": true },
+    { "id": "dev-1006", "hostname": "WS-OPS-02.corp.local", "agentInstalled": true, "lastSeenMinutes": 15, "patchStatus": "compliant", "osSupported": true },
+    { "id": "dev-1007", "hostname": "SRV-DC-01.corp.local", "agentInstalled": true, "lastSeenMinutes": 2, "patchStatus": "compliant", "osSupported": true },
+    { "id": "dev-1008", "hostname": "SRV-FILE-01.corp.local", "agentInstalled": true, "lastSeenMinutes": 5, "patchStatus": "missing", "osSupported": true },
+    { "id": "dev-1009", "hostname": "SRV-LEGACY-01.corp.local", "agentInstalled": true, "lastSeenMinutes": 30, "patchStatus": "compliant", "osSupported": false },
+    { "id": "dev-1010", "hostname": "WS-SALES-01.corp.local", "agentInstalled": true, "lastSeenMinutes": 9, "patchStatus": "compliant", "osSupported": true },
+    { "id": "dev-1011", "hostname": "WS-SALES-02.corp.local", "agentInstalled": false, "lastSeenMinutes": 0, "patchStatus": "unknown", "osSupported": true },
+    { "id": "dev-1012", "hostname": "WS-KIOSK-01.corp.local", "agentInstalled": true, "lastSeenMinutes": 7, "patchStatus": "compliant", "osSupported": true }
+  ]
+}

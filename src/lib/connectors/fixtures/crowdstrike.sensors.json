@@ -1,0 +1,18 @@
+{
+  "cid": "sample-org",
+  "expectedHosts": 12,
+  "openCriticalDetections": 0,
+  "hosts": [
+    { "id": "h-1", "hostname": "WS-FINANCE-01", "sensorInstalled": true, "sensorHealthy": true },
+    { "id": "h-2", "hostname": "WS-FINANCE-02", "sensorInstalled": true, "sensorHealthy": true },
+    { "id": "h-3", "hostname": "WS-HR-01", "sensorInstalled": true, "sensorHealthy": true },
+    { "id": "h-4", "hostname": "WS-HR-02", "sensorInstalled": true, "sensorHealthy": false },
+    { "id": "h-5", "hostname": "WS-OPS-01", "sensorInstalled": true, "sensorHealthy": true },
+    { "id": "h-6", "hostname": "SRV-DC-01", "sensorInstalled": true, "sensorHealthy": true },
+    { "id": "h-7", "hostname": "SRV-FILE-01", "sensorInstalled": true, "sensorHealthy": true },
+    { "id": "h-8", "hostname": "WS-SALES-01", "sensorInstalled": true, "sensorHealthy": true },
+    { "id": "h-9", "hostname": "WS-SALES-02", "sensorInstalled": true, "sensorHealthy": true },
+    { "id": "h-10", "hostname": "WS-KIOSK-01", "sensorInstalled": true, "sensorHealthy": true },
+    { "id": "h-11", "hostname": "WS-ENG-01", "sensorInstalled": true, "sensorHealthy": true }
+  ]
+}
