@@ -6,6 +6,7 @@ import base64
 import os
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -45,6 +46,7 @@ class Settings:
 
     @classmethod
     def from_env(cls) -> "Settings":
+        load_dotenv()
         required = {
             "CW_SITE": "e.g. api-na.myconnectwise.net",
             "CW_COMPANY_ID": "the company ID you type on the PSA login screen",
@@ -86,6 +88,26 @@ class Settings:
             "clientId": self.client_id,
             "Accept": accept,
         }
+
+
+PROJECT_ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
+
+
+def load_dotenv(path: Path = PROJECT_ENV_FILE) -> None:
+    """Load KEY=VALUE lines from connectwise-mcp/.env. Real env vars win."""
+    if not path.is_file():
+        return
+    for raw in path.read_text(encoding="utf-8-sig").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip().removeprefix("export ").strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        if key and not os.environ.get(key):
+            os.environ[key] = value
 
 
 def normalize_endpoint(endpoint: str) -> str:

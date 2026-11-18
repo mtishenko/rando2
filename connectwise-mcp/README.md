@@ -42,6 +42,9 @@ CW_PRIVATE_KEY=... CW_CLIENT_ID=... uv run connectwise-mcp --check
 
 ### Claude Desktop
 
+**Easiest:** copy `.env.example` to `.env` in this folder and fill it in. The server reads it
+automatically, so the config below needs no `"env"` block. Values set in `"env"` override `.env`.
+
 Edit `claude_desktop_config.json`. On macOS it's in `~/Library/Application Support/Claude/`. On Windows it's in `%APPDATA%\Claude\`.
 
 ```json

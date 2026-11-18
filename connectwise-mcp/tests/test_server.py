@@ -121,3 +121,16 @@ async def test_company_type_uses_child_conditions(recorded):
 async def test_only_get_requests(recorded):
     await call("cw_query", {"endpoint": "company/companies"})
     assert all(r.method == "GET" for r in recorded)
+
+
+def test_load_dotenv(tmp_path, monkeypatch):
+    from connectwise_mcp.client import load_dotenv
+    f = tmp_path / ".env"
+    f.write_text('# c\nCW_A="quoted"\nexport CW_B=plain\nCW_C=fromfile\n')
+    monkeypatch.delenv("CW_A", raising=False)
+    monkeypatch.delenv("CW_B", raising=False)
+    monkeypatch.setenv("CW_C", "real")
+    load_dotenv(f)
+    import os
+    assert os.environ["CW_A"] == "quoted" and os.environ["CW_B"] == "plain"
+    assert os.environ["CW_C"] == "real"
